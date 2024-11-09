@@ -41,7 +41,9 @@ jobs:
           
           # Lee el resumen y crea un mensaje de commit
           COMMIT_MSG=$(cat commit_summary.txt)
-          git commit --amend -m "$COMMIT_MSG"
+          git commit --amend --no-edit -m "$COMMIT_MSG"
       
       - name: Push amended commit
-        run: git push origin main --force
+        run: |
+          # Hacer el push forzado del commit modificado
+          git push origin main --force
