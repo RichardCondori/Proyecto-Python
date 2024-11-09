@@ -1,0 +1,47 @@
+name: Generate Commit Summary with AI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ai-summary:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Analyze Changes and Generate Summary
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          # Detecta los cambios en el código Python
+          DIFF=$(git diff HEAD~1 -- src/*.py)
+          
+          # Guarda el diff en un archivo temporal
+          echo "$DIFF" > diff.txt
+          
+          # Llama a generate_summary.py para obtener el resumen de cambios
+          python generate_summary.py diff.txt > commit_summary.txt
+          
+          # Lee el resumen y crea un mensaje de commit
+          COMMIT_MSG=$(cat commit_summary.txt)
+          git commit --amend -m "$COMMIT_MSG"
+      
+      - name: Push amended commit
+        run: git push origin main --force
